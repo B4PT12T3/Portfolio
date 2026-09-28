@@ -1,0 +1,133 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { path, routes, useTranslations, type Lang } from '../i18n/ui';
+import { services, process } from '../data/services';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const price = (n: number | null) =>
+  n === null ? t('services.onQuote') : `${t('services.from')} ${new Intl.NumberFormat(lang === 'fr' ? 'fr-FR' : 'en-GB').format(n)} €`;
+---
+
+<BaseLayout lang={lang} title={t('services.title')} description={t('services.description')} alternates={routes.services}>
+  <div class="container">
+    <header class="page-head">
+      <h1>{t('services.title')}</h1>
+      <p>{t('services.intro')}</p>
+    </header>
+
+    <ul class="list">
+      {
+        services.map((s) => (
+          <li class="service" id={s.id}>
+            <div class="info">
+              <p class="cat muted">{t(`cat.${s.category}`)}</p>
+              <h2>{s.name[lang]}</h2>
+              <p class="desc">{s.description[lang]}</p>
+            </div>
+            <div class="includes">
+              <h3 class="visually-hidden">{t('services.includes')}</h3>
+              <ul>
+                {s.includes[lang].map((item) => (
+                  <li>{item}</li>
+                ))}
+              </ul>
+            </div>
+            <p class="price">{price(s.price)}</p>
+          </li>
+        ))
+      }
+    </ul>
+
+    <section class="section" aria-labelledby="process-title">
+      <h2 id="process-title">{t('services.process')}</h2>
+      <ol class="process">
+        {
+          process.map((step) => (
+            <li>
+              <h3>{step.title[lang]}</h3>
+              <p class="muted">{step.text[lang]}</p>
+            </li>
+          ))
+        }
+      </ol>
+      <a class="button" href={path('contact', lang)}>{t('services.cta')}</a>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--line);
+  }
+  .service {
+    display: grid;
+    gap: 1rem 2rem;
+    padding-block: 2rem;
+    border-bottom: 1px solid var(--line);
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 56rem) {
+    .service {
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) 10rem;
+      align-items: start;
+    }
+    .price {
+      text-align: right;
+    }
+  }
+  .cat {
+    font-size: var(--step--1);
+    margin-bottom: 0.3rem;
+  }
+  .desc {
+    margin-top: 0.6rem;
+    color: var(--muted);
+    max-width: 30rem;
+  }
+  .includes ul {
+    margin: 0;
+    padding-left: 1.1em;
+  }
+  .includes li + li {
+    margin-top: 0.3rem;
+  }
+  .price {
+    font-weight: 650;
+    font-size: var(--step-1);
+    white-space: nowrap;
+  }
+  .process {
+    list-style: none;
+    counter-reset: step;
+    margin: 1.75rem 0 2.5rem;
+    padding: 0;
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  }
+  .process li {
+    counter-increment: step;
+    padding-top: 1rem;
+    border-top: 2px solid var(--text);
+  }
+  .process li::before {
+    content: counter(step);
+    display: block;
+    font-size: var(--step-2);
+    font-weight: 650;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 0.75rem;
+  }
+  .process p {
+    margin-top: 0.4rem;
+    font-size: var(--step--1);
+  }
+</style>

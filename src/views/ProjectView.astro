@@ -1,0 +1,304 @@
+---
+import { Image, getImage } from 'astro:assets';
+import { render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { path, projectPath, useTranslations, type Lang } from '../i18n/ui';
+import type { Project } from '../lib/projects';
+
+interface Props {
+  lang: Lang;
+  project: Project;
+  next?: Project;
+  /** URL of the same project in the other language (or the work page if not translated) */
+  otherLangPath: string;
+}
+
+const { lang, project, next, otherLangPath } = Astro.props;
+const t = useTranslations(lang);
+const { title, summary, category, year, client, role, url, cover, coverAlt, gallery } = project.data;
+const { Content } = await render(project);
+// Resized versions: large image for the lightbox, 1200px JPEG for social sharing
+const fullImages = await Promise.all(
+  gallery.map((g) => getImage({ src: g.image, width: Math.min(2000, g.image.width), format: 'webp' })),
+);
+const ogImage = await getImage({ src: cover, width: Math.min(1200, cover.width), format: 'jpg' });
+const alternates = { [lang]: projectPath(project.slug, lang), [lang === 'fr' ? 'en' : 'fr']: otherLangPath } as Record<Lang, string>;
+---
+
+<BaseLayout lang={lang} title={title} description={summary} alternates={alternates} image={ogImage.src}>
+  <article class="container">
+    <header class="head">
+      <a class="back" href={path('work', lang)}><span aria-hidden="true">←</span> {t('project.back')}</a>
+      <h1>{title}</h1>
+      <p class="summary">{summary}</p>
+      <dl class="facts">
+        <div><dt>{t('project.category')}</dt><dd>{t(`cat.${category}`)}</dd></div>
+        <div><dt>{t('project.year')}</dt><dd>{year}</dd></div>
+        {client && <div><dt>{t('project.client')}</dt><dd>{client}</dd></div>}
+        {role && <div><dt>{t('project.role')}</dt><dd>{role}</dd></div>}
+      </dl>
+      {url && <a class="button secondary visit" href={url} target="_blank" rel="noopener">{t('project.visit')}</a>}
+    </header>
+
+    <figure class="cover">
+      <Image src={cover} alt={coverAlt} widths={[640, 1024, 1600, 2400]} sizes="(min-width: 76rem) 71rem, 100vw" loading="eager" fetchpriority="high" />
+    </figure>
+
+    <div class="body prose">
+      <Content />
+    </div>
+
+    {
+      gallery.length > 0 && (
+        <section class="gallery-section" aria-labelledby="gallery-title">
+          <h2 id="gallery-title" class="visually-hidden">{t('project.gallery')}</h2>
+          <ul class="gallery" data-count={gallery.length}>
+            {gallery.map((item, i) => (
+              <li>
+                <a
+                  href={fullImages[i].src}
+                  class="thumb"
+                  data-index={i}
+                  data-full={fullImages[i].src}
+                  data-alt={item.alt}
+                  aria-label={`${t('project.openImage')} : ${item.alt}`}
+                >
+                  <Image src={item.image} alt={item.alt} widths={[480, 800, 1200]} sizes="(min-width: 48rem) 50vw, 100vw" />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    <footer class="end">
+      <p class="cta">
+        {t('project.cta')} <a href={path('contact', lang)}>{t('project.ctaLink')}</a>
+      </p>
+      {
+        next && (
+          <a class="next" href={projectPath(next.slug, lang)}>
+            <span class="muted">{t('project.next')}</span>
+            <span class="next-title">{next.data.title} <span aria-hidden="true">→</span></span>
+          </a>
+        )
+      }
+    </footer>
+  </article>
+
+  {
+    gallery.length > 0 && (
+      <dialog class="lightbox" aria-label={t('project.gallery')}>
+        <img src="" alt="" />
+        <button type="button" class="lb-close" aria-label={t('project.closeImage')}>✕</button>
+        {gallery.length > 1 && (
+          <>
+            <button type="button" class="lb-prev" aria-label={t('project.prevImage')}>‹</button>
+            <button type="button" class="lb-next" aria-label={t('project.nextImage')}>›</button>
+          </>
+        )}
+      </dialog>
+    )
+  }
+</BaseLayout>
+
+<script>
+  // Simple lightbox for the gallery. Without JavaScript, thumbnails link to the full image.
+  const dialog = document.querySelector<HTMLDialogElement>('.lightbox');
+  const thumbs = [...document.querySelectorAll<HTMLAnchorElement>('.gallery .thumb')];
+  if (dialog && thumbs.length) {
+    const img = dialog.querySelector('img')!;
+    let index = 0;
+    let opener: HTMLElement | null = null;
+    const show = (i: number) => {
+      index = (i + thumbs.length) % thumbs.length;
+      img.src = thumbs[index].dataset.full!;
+      img.alt = thumbs[index].dataset.alt ?? '';
+    };
+    thumbs.forEach((a, i) =>
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        opener = a;
+        show(i);
+        dialog.showModal();
+      }),
+    );
+    dialog.querySelector('.lb-close')?.addEventListener('click', () => dialog.close());
+    dialog.querySelector('.lb-prev')?.addEventListener('click', () => show(index - 1));
+    dialog.querySelector('.lb-next')?.addEventListener('click', () => show(index + 1));
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog) dialog.close();
+    });
+    dialog.addEventListener('keydown', (e) => {
+      if (thumbs.length < 2) return;
+      if (e.key === 'ArrowLeft') show(index - 1);
+      if (e.key === 'ArrowRight') show(index + 1);
+    });
+    dialog.addEventListener('close', () => opener?.focus());
+  }
+</script>
+
+<style>
+  .head {
+    padding-block: clamp(2rem, 5vw, 4rem) 2rem;
+    max-width: 52rem;
+  }
+  .back {
+    display: inline-block;
+    margin-bottom: 1.5rem;
+    font-size: var(--step--1);
+    text-decoration: none;
+    color: var(--muted);
+  }
+  .back:hover {
+    color: var(--accent);
+  }
+  .summary {
+    margin-top: 1rem;
+    font-size: var(--step-1);
+    line-height: 1.45;
+    color: var(--muted);
+    max-width: var(--measure);
+  }
+  .facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 2.5rem;
+    margin: 1.75rem 0 0;
+  }
+  .facts dt {
+    font-size: var(--step--1);
+    color: var(--muted);
+  }
+  .facts dd {
+    margin: 0;
+    font-weight: 560;
+  }
+  .visit {
+    margin-top: 1.75rem;
+  }
+  .cover {
+    margin: 0;
+  }
+  .cover :global(img) {
+    width: 100%;
+    border-radius: var(--radius);
+  }
+  .body {
+    margin-block: clamp(2rem, 5vw, 3.5rem);
+  }
+  .gallery {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+  }
+  .thumb {
+    display: block;
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: zoom-in;
+    background: var(--line);
+  }
+  .thumb :global(img) {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    transition: opacity 0.2s;
+  }
+  .thumb:hover :global(img) {
+    opacity: 0.88;
+  }
+  .end {
+    margin-top: clamp(3rem, 7vw, 5rem);
+    padding-top: 2rem;
+    border-top: 1px solid var(--line);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: end;
+    gap: 1.5rem;
+  }
+  .cta {
+    font-size: var(--step-1);
+  }
+  .cta a {
+    font-weight: 600;
+    text-decoration-color: var(--accent);
+  }
+  .next {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    text-align: right;
+    margin-left: auto;
+  }
+  .next .muted {
+    font-size: var(--step--1);
+  }
+  .next-title {
+    font-size: var(--step-2);
+    font-weight: 650;
+    letter-spacing: -0.02em;
+  }
+
+  .lightbox {
+    width: 100vw;
+    height: 100vh;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: rgb(10 11 14 / 0.94);
+    color: #fff;
+  }
+  .lightbox[open] {
+    display: grid;
+    place-items: center;
+  }
+  .lightbox::backdrop {
+    background: rgb(10 11 14 / 0.94);
+  }
+  .lightbox img {
+    max-width: min(92vw, 100%);
+    max-height: 86vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+  .lightbox button {
+    position: fixed;
+    font: inherit;
+    font-size: 1.6rem;
+    line-height: 1;
+    color: #fff;
+    background: rgb(255 255 255 / 0.1);
+    border: 0;
+    border-radius: 999px;
+    width: 3rem;
+    height: 3rem;
+    cursor: pointer;
+  }
+  .lightbox button:hover {
+    background: rgb(255 255 255 / 0.22);
+  }
+  .lb-close {
+    top: 1rem;
+    right: 1rem;
+  }
+  .lb-prev,
+  .lb-next {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .lb-prev {
+    left: 1rem;
+  }
+  .lb-next {
+    right: 1rem;
+  }
+</style>

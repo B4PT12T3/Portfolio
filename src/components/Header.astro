@@ -1,0 +1,164 @@
+---
+import { site } from '../config/site';
+import { path, useTranslations, type Lang, type RouteKey } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  alternates: Record<Lang, string>;
+}
+
+const { lang, alternates } = Astro.props;
+const t = useTranslations(lang);
+const otherLang: Lang = lang === 'fr' ? 'en' : 'fr';
+const current = Astro.url.pathname;
+
+const items: { key: RouteKey; label: string }[] = [
+  { key: 'work', label: t('nav.work') },
+  { key: 'services', label: t('nav.services') },
+  { key: 'about', label: t('nav.about') },
+  { key: 'contact', label: t('nav.contact') },
+];
+const isActive = (key: RouteKey) => current.startsWith(path(key, lang));
+---
+
+<header class="site-header">
+  <div class="container bar">
+    <a class="brand" href={path('home', lang)}>{site.shortName}</a>
+
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-open={t('nav.menu')} data-close={t('nav.close')}>
+      {t('nav.menu')}
+    </button>
+
+    <nav id="site-nav" class="nav" aria-label={t('nav.label')}>
+      <ul>
+        {
+          items.map((item) => (
+            <li>
+              <a href={path(item.key, lang)} aria-current={isActive(item.key) ? 'page' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+        <li class="lang">
+          <a href={alternates[otherLang]} hreflang={otherLang} lang={otherLang} title={t('lang.switch')}>
+            <span aria-hidden="true">{t('lang.short')}</span>
+            <span class="visually-hidden">{t('lang.switch')}</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<script>
+  const header = document.querySelector<HTMLElement>('.site-header');
+  const button = header?.querySelector<HTMLButtonElement>('.menu-toggle');
+  if (header && button) {
+    header.dataset.js = 'true';
+    const setOpen = (open: boolean) => {
+      button.setAttribute('aria-expanded', String(open));
+      button.textContent = open ? button.dataset.close! : button.dataset.open!;
+      header.classList.toggle('is-open', open);
+    };
+    button.addEventListener('click', () => setOpen(button.getAttribute('aria-expanded') !== 'true'));
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && header.classList.contains('is-open')) {
+        setOpen(false);
+        button.focus();
+      }
+    });
+    matchMedia('(min-width: 48rem)').addEventListener('change', () => setOpen(false));
+  }
+</script>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: var(--header-h);
+    flex-wrap: wrap;
+  }
+  .brand {
+    font-weight: 680;
+    font-size: var(--step-1);
+    letter-spacing: -0.02em;
+    text-decoration: none;
+  }
+  .nav ul {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.5rem;
+    margin: 0;
+    padding: 0;
+  }
+  .nav a {
+    text-decoration: none;
+    padding-block: 0.4rem;
+    display: inline-block;
+  }
+  .nav a[aria-current='page'] {
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.45em;
+  }
+  .lang a {
+    font-weight: 600;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.15rem 0.6rem;
+  }
+  .menu-toggle {
+    display: none;
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.35rem 0.95rem;
+    cursor: pointer;
+  }
+
+  /* Mobile: collapsible menu (only when JavaScript is available) */
+  @media (max-width: 47.99rem) {
+    .site-header[data-js] .menu-toggle {
+      display: inline-block;
+    }
+    .site-header[data-js] .nav {
+      display: none;
+      width: 100%;
+      padding-bottom: 1rem;
+    }
+    .site-header[data-js].is-open .nav {
+      display: block;
+    }
+    .site-header[data-js] .nav ul {
+      flex-direction: column;
+      gap: 0;
+    }
+    .site-header[data-js] .nav li:not(.lang) a {
+      font-size: var(--step-1);
+      padding-block: 0.55rem;
+    }
+    .site-header[data-js] .lang {
+      margin-top: 0.75rem;
+    }
+    .site-header:not([data-js]) .nav {
+      width: 100%;
+      padding-bottom: 0.5rem;
+    }
+  }
+</style>

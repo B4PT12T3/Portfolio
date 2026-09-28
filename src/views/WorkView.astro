@@ -1,0 +1,122 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import { categories, routes, useTranslations, type Lang } from '../i18n/ui';
+import { getProjects } from '../lib/projects';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const projects = await getProjects(lang);
+const count = (n: number) => `${n} ${n > 1 ? t('work.count.many') : t('work.count.one')}`;
+const filters = [
+  { key: 'all', label: t('cat.all'), n: projects.length },
+  ...categories.map((c) => ({ key: c, label: t(`cat.${c}`), n: projects.filter((p) => p.data.category === c).length })),
+];
+---
+
+<BaseLayout lang={lang} title={t('work.title')} description={t('work.description')} alternates={routes.work}>
+  <div class="container">
+    <header class="page-head">
+      <h1>{t('work.title')}</h1>
+    </header>
+
+    <div class="filters" role="group" aria-label={t('work.filter')} hidden>
+      {
+        filters.map((f) => (
+          <button type="button" data-filter={f.key} aria-pressed={f.key === 'all' ? 'true' : 'false'}>
+            {f.label} <span class="n" aria-label={count(f.n)}>{f.n}</span>
+          </button>
+        ))
+      }
+    </div>
+    <p class="status visually-hidden" aria-live="polite"></p>
+
+    <div class="grid" id="work-grid">
+      {projects.map((project, i) => <ProjectCard project={project} lang={lang} eager={i < 3} headingLevel="h2" />)}
+    </div>
+    <p class="empty muted" hidden>{t('work.empty')}</p>
+  </div>
+</BaseLayout>
+
+<script>
+  // Category filter. Without JavaScript every project is simply listed.
+  const bar = document.querySelector<HTMLElement>('.filters');
+  const cards = [...document.querySelectorAll<HTMLElement>('#work-grid .card')];
+  const empty = document.querySelector<HTMLElement>('.empty');
+  const status = document.querySelector<HTMLElement>('.status');
+
+  if (bar) {
+    bar.hidden = false;
+    const buttons = [...bar.querySelectorAll<HTMLButtonElement>('button')];
+    const valid = buttons.map((b) => b.dataset.filter);
+
+    const apply = (key: string, updateUrl: boolean) => {
+      if (!valid.includes(key)) key = 'all';
+      let visible = 0;
+      for (const card of cards) {
+        const show = key === 'all' || card.dataset.category === key;
+        card.hidden = !show;
+        if (show) visible++;
+      }
+      for (const b of buttons) b.setAttribute('aria-pressed', String(b.dataset.filter === key));
+      if (empty) empty.hidden = visible > 0;
+      const active = buttons.find((b) => b.dataset.filter === key);
+      if (status && active) status.textContent = active.querySelector('.n')?.getAttribute('aria-label') ?? '';
+      if (updateUrl) {
+        history.replaceState(null, '', key === 'all' ? location.pathname : `#${key}`);
+      }
+    };
+
+    buttons.forEach((b) => b.addEventListener('click', () => apply(b.dataset.filter!, true)));
+    window.addEventListener('hashchange', () => apply(location.hash.slice(1), false));
+    apply(location.hash.slice(1) || 'all', false);
+  }
+</script>
+
+<style>
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 2.25rem;
+  }
+  .filters[hidden] {
+    display: none;
+  }
+  .filters button {
+    font: inherit;
+    font-size: var(--step--1);
+    color: var(--text);
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.45rem 1rem;
+    cursor: pointer;
+    display: inline-flex;
+    gap: 0.45rem;
+    align-items: baseline;
+  }
+  .filters button:hover {
+    border-color: var(--text);
+  }
+  .filters button[aria-pressed='true'] {
+    background: var(--text);
+    border-color: var(--text);
+    color: var(--bg);
+  }
+  .n {
+    opacity: 0.6;
+    font-variant-numeric: tabular-nums;
+  }
+  .grid {
+    display: grid;
+    gap: 2.5rem 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+  }
+  .grid :global(.card[hidden]) {
+    display: none;
+  }
+</style>

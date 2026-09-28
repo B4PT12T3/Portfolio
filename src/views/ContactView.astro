@@ -1,0 +1,241 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { site } from '../config/site';
+import { categories, path, routes, useTranslations, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const endpoint = site.formspreeId ? `https://formspree.io/f/${site.formspreeId}` : '';
+const subject = lang === 'fr' ? 'Nouveau message depuis morvillebaptiste.fr' : 'New message from morvillebaptiste.fr (EN)';
+---
+
+<BaseLayout lang={lang} title={t('contact.title')} description={t('contact.description')} alternates={routes.contact}>
+  <div class="container">
+    <header class="page-head">
+      <h1>{t('contact.title')}</h1>
+      <p>{t('contact.intro')}</p>
+    </header>
+
+    <div class="layout">
+      {
+        endpoint ? (
+          <form class="form" action={endpoint} method="POST" data-error={t('contact.error')} data-sending={t('contact.sending')}>
+            <input type="hidden" name="_subject" value={subject} />
+            <input type="hidden" name="language" value={lang} />
+            {/* Spam trap: humans never see or fill this field */}
+            <div class="trap" aria-hidden="true">
+              <label>
+                Leave empty <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" />
+              </label>
+            </div>
+
+            <div class="row">
+              <div class="field">
+                <label for="name">
+                  {t('contact.name')} <span class="req">({t('contact.required')})</span>
+                </label>
+                <input id="name" name="name" type="text" autocomplete="name" required maxlength="120" />
+              </div>
+              <div class="field">
+                <label for="email">
+                  {t('contact.email')} <span class="req">({t('contact.required')})</span>
+                </label>
+                <input id="email" name="email" type="email" autocomplete="email" required maxlength="200" />
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="field">
+                <label for="type">{t('contact.type')}</label>
+                <select id="type" name="project_type">
+                  <option value="">{t('contact.type.placeholder')}</option>
+                  {categories.map((c) => (
+                    <option value={t(`cat.${c}`)}>{t(`cat.${c}`)}</option>
+                  ))}
+                  <option value={t('contact.type.other')}>{t('contact.type.other')}</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="budget">{t('contact.budget')}</label>
+                <input id="budget" name="budget" type="text" maxlength="60" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="message">
+                {t('contact.message')} <span class="req">({t('contact.required')})</span>
+              </label>
+              <textarea id="message" name="message" rows="7" required maxlength="5000" aria-describedby="message-hint"></textarea>
+              <p class="hint muted" id="message-hint">{t('contact.message.hint')}</p>
+            </div>
+
+            <p class="privacy muted">
+              {t('contact.privacy')} <a href={path('legal', lang)}>{t('contact.privacyLink')}</a>.
+            </p>
+
+            <button class="button" type="submit">{t('contact.send')}</button>
+            <p class="result" role="status" aria-live="polite" data-success={t('contact.success')}></p>
+          </form>
+        ) : (
+          <p class="not-configured">
+            {t('contact.notConfigured')} <a href={`mailto:${site.email}`}>{site.email}</a>.
+          </p>
+        )
+      }
+
+      <aside class="direct">
+        <h2>{t('contact.direct')}</h2>
+        <a class="email" href={`mailto:${site.email}`}>{site.email}</a>
+        <p class="muted">{site.location}</p>
+      </aside>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  // Sends the form without leaving the page. Without JavaScript, the form posts to Formspree normally.
+  const form = document.querySelector<HTMLFormElement>('form.form');
+  if (form) {
+    const button = form.querySelector<HTMLButtonElement>('button[type=submit]')!;
+    const result = form.querySelector<HTMLElement>('.result')!;
+    const label = button.textContent;
+    const email = document.querySelector<HTMLAnchorElement>('.direct .email')?.textContent ?? '';
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      button.disabled = true;
+      button.textContent = form.dataset.sending ?? label;
+      result.className = 'result';
+      result.textContent = '';
+      try {
+        const res = await fetch(form.action, {
+          method: 'POST',
+          body: new FormData(form),
+          headers: { Accept: 'application/json' },
+        });
+        if (!res.ok) throw new Error(String(res.status));
+        form.reset();
+        result.classList.add('ok');
+        result.textContent = result.dataset.success ?? '';
+      } catch {
+        result.classList.add('error');
+        result.textContent = `${form.dataset.error} ${email}.`;
+      } finally {
+        button.disabled = false;
+        button.textContent = label;
+      }
+    });
+  }
+</script>
+
+<style>
+  .layout {
+    display: grid;
+    gap: 3rem;
+    align-items: start;
+  }
+  @media (min-width: 56rem) {
+    .layout {
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+      gap: 5rem;
+    }
+  }
+  .form {
+    display: grid;
+    gap: 1.25rem;
+  }
+  .row {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  }
+  .field {
+    display: grid;
+    gap: 0.4rem;
+  }
+  label {
+    font-weight: 560;
+  }
+  .req {
+    font-weight: 400;
+    color: var(--muted);
+    font-size: var(--step--1);
+  }
+  input,
+  select,
+  textarea {
+    font: inherit;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 0.7rem 0.85rem;
+    width: 100%;
+  }
+  textarea {
+    resize: vertical;
+    min-height: 9rem;
+  }
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 0;
+    border-color: var(--accent);
+  }
+  .hint,
+  .privacy {
+    font-size: var(--step--1);
+  }
+  .form .button {
+    justify-self: start;
+  }
+  .trap {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+  .result:empty {
+    display: none;
+  }
+  .result {
+    padding: 0.85rem 1rem;
+    border-radius: var(--radius);
+    border: 1px solid currentColor;
+  }
+  .result.ok {
+    color: var(--success);
+  }
+  .result.error {
+    color: var(--danger);
+  }
+  .not-configured {
+    font-size: var(--step-1);
+    padding: 1.25rem;
+    border: 1px dashed var(--line);
+    border-radius: var(--radius);
+  }
+  .direct {
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line);
+  }
+  .direct h2 {
+    font-size: var(--step-0);
+    font-weight: 560;
+    color: var(--muted);
+    letter-spacing: 0;
+  }
+  .email {
+    display: inline-block;
+    margin-block: 0.4rem;
+    font-size: var(--step-1);
+    font-weight: 620;
+    overflow-wrap: anywhere;
+    text-decoration: none;
+  }
+</style>

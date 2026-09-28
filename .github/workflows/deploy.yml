@@ -1,0 +1,91 @@
+# Builds the site and uploads it to LWS over FTPS.
+#   push to `main` → https://morvillebaptiste.fr        (production, indexed by Google)
+#   push to `dev`  → https://test.morvillebaptiste.fr   (test, hidden from Google, "Test version" badge)
+#
+# Required repository settings (GitHub → Settings → Secrets and variables → Actions):
+#   Secrets:   FTP_SERVER     e.g. ftp.morvillebaptiste.fr
+#              FTP_USERNAME   your LWS FTP login
+#              FTP_PASSWORD   your LWS FTP password
+#   Variables: FTP_PROD_DIR   folder of the main site on the FTP, ending with "/"   e.g. /htdocs/
+#              FTP_TEST_DIR   folder of the test subdomain, ending with "/"          e.g. /test/
+# See README.md for how to find these folders.
+
+name: Deploy
+
+on:
+  push:
+    branches: [main, dev]
+  workflow_dispatch:
+
+# Never run two deployments of the same branch at once.
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy ${{ github.ref_name == 'main' && 'production' || 'test' }}
+    if: github.ref_name == 'main' || github.ref_name == 'dev'
+    runs-on: ubuntu-latest
+    env:
+      SITE_ENV: ${{ github.ref_name == 'main' && 'production' || 'development' }}
+      SITE_URL: ${{ github.ref_name == 'main' && 'https://morvillebaptiste.fr' || 'https://test.morvillebaptiste.fr' }}
+
+    steps:
+      - name: Check deployment settings
+        env:
+          FTP_PROD_DIR: ${{ vars.FTP_PROD_DIR }}
+          FTP_TEST_DIR: ${{ vars.FTP_TEST_DIR }}
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          missing=0
+          if [ "$GITHUB_REF_NAME" = "main" ]; then dir_var=FTP_PROD_DIR; else dir_var=FTP_TEST_DIR; fi
+          SERVER_DIR="${!dir_var}"
+          for name in FTP_SERVER FTP_USERNAME FTP_PASSWORD; do
+            if [ -z "${!name}" ]; then echo "::error::Secret $name is not set."; missing=1; fi
+          done
+          if [ -z "$SERVER_DIR" ]; then
+            echo "::error::Variable $dir_var is not set."; missing=1
+          elif [ "${SERVER_DIR: -1}" != "/" ]; then
+            echo "::error::The FTP folder \"$SERVER_DIR\" must end with a slash (/)."; missing=1
+          fi
+          if [ -n "$FTP_PROD_DIR" ] && [ "$FTP_PROD_DIR" = "$FTP_TEST_DIR" ]; then
+            echo "::error::FTP_PROD_DIR and FTP_TEST_DIR must be different folders."; missing=1
+          fi
+          if [ "$missing" = 1 ]; then echo "See README.md, section 'Deployment setup'."; exit 1; fi
+          echo "SERVER_DIR=$SERVER_DIR" >> "$GITHUB_ENV"
+          echo "Deploying $SITE_URL to $SERVER_DIR"
+
+      - name: Get the code
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build the site
+        run: npm run build
+
+      - name: Upload to LWS
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          port: 21
+          local-dir: ./dist/
+          server-dir: ${{ env.SERVER_DIR }}
+          # LWS's FTP certificate doesn't match every domain name; the connection is still encrypted.
+          security: loose
+          timeout: 120000

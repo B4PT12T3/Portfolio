@@ -1,0 +1,123 @@
+---
+import { Image } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { path, routes, useTranslations, type Lang } from '../i18n/ui';
+import { about } from '../data/about';
+import portrait from '../assets/portrait.jpg';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<BaseLayout lang={lang} title={t('about.title')} description={t('about.description')} alternates={routes.about}>
+  <div class="container">
+    <div class="intro">
+      <div class="text">
+        <h1 class="page-title">{t('about.title')}</h1>
+        <div class="bio">
+          {about.bio[lang].map((p) => <p>{p}</p>)}
+        </div>
+        <a class="button" href={path('contact', lang)}>{t('about.cta')}</a>
+      </div>
+      <figure class="portrait">
+        <Image src={portrait} alt={t('about.portraitAlt')} widths={[400, 700, 1000]} sizes="(min-width: 56rem) 28rem, 100vw" loading="eager" />
+      </figure>
+    </div>
+
+    <section class="section" aria-labelledby="skills-title">
+      <h2 id="skills-title">{t('about.skills')}</h2>
+      <div class="skills">
+        {
+          about.skills.map((group) => (
+            <div>
+              <h3>{group.title[lang]}</h3>
+              <ul>
+                {group.items[lang].map((item) => (
+                  <li>{item}</li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </div>
+      <h2 class="tools-title">{t('about.tools')}</h2>
+      <ul class="tools">
+        {about.tools.map((tool) => <li>{tool}</li>)}
+      </ul>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .intro {
+    display: grid;
+    gap: 2.5rem;
+    padding-block: clamp(2.5rem, 6vw, 5rem) 1rem;
+    align-items: start;
+  }
+  @media (min-width: 56rem) {
+    .intro {
+      grid-template-columns: minmax(0, 1fr) 28rem;
+      gap: 4rem;
+    }
+  }
+  .bio {
+    margin-block: 1.5rem 2rem;
+    max-width: var(--measure);
+  }
+  .bio p {
+    font-size: var(--step-1);
+    line-height: 1.5;
+  }
+  .bio p + p {
+    margin-top: 1em;
+  }
+  .portrait {
+    margin: 0;
+  }
+  .portrait :global(img) {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    border-radius: var(--radius);
+  }
+  .skills {
+    display: grid;
+    gap: 2rem;
+    margin-top: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  }
+  .skills h3 {
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .skills ul {
+    list-style: none;
+    margin: 0.8rem 0 0;
+    padding: 0;
+    color: var(--muted);
+  }
+  .skills li + li {
+    margin-top: 0.3rem;
+  }
+  .tools-title {
+    margin-top: 3.5rem;
+  }
+  .tools {
+    list-style: none;
+    margin: 1.25rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .tools li {
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.3rem 0.9rem;
+    font-size: var(--step--1);
+  }
+</style>

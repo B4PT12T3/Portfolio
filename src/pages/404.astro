@@ -1,0 +1,25 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { routes, ui } from '../i18n/ui';
+// Served by the server for any unknown URL (see public/.htaccess), in both languages.
+---
+
+<BaseLayout lang="fr" title={ui.fr['notFound.title']} description={ui.fr['notFound.text']} alternates={routes.home} noindex>
+  <div class="container page-head nf">
+    <p class="code muted">404</p>
+    <h1>{ui.fr['notFound.title']}</h1>
+    <p>{ui.fr['notFound.text']} <a href={routes.home.fr}>{ui.fr['notFound.home']}</a></p>
+    <p lang="en">{ui.en['notFound.text']} <a href={routes.home.en}>{ui.en['notFound.home']}</a></p>
+  </div>
+</BaseLayout>
+
+<style>
+  .nf {
+    min-height: 50vh;
+  }
+  .code {
+    font-size: var(--step-2);
+    font-weight: 650;
+    margin-bottom: 0.5rem;
+  }
+</style>

@@ -1,0 +1,105 @@
+---
+import '@fontsource-variable/bricolage-grotesque';
+import '../styles/global.css';
+import { SITE_ENV } from 'astro:env/server';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { site } from '../config/site';
+import { ui, useTranslations, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  /** Page title, without the site name */
+  title: string;
+  description: string;
+  /** Path of this same page in each language, e.g. { fr: '/a-propos/', en: '/en/about/' } */
+  alternates: Record<Lang, string>;
+  /** Absolute or root-relative URL of the social sharing image */
+  image?: string;
+  /** Set true for pages that should never be indexed (404) */
+  noindex?: boolean;
+}
+
+const { lang, title, description, alternates, image, noindex = false } = Astro.props;
+const t = useTranslations(lang);
+const isProduction = SITE_ENV === 'production';
+const otherLang: Lang = lang === 'fr' ? 'en' : 'fr';
+
+const fullTitle = alternates.fr === '/' || alternates.en === '/en/' ? `${site.name} — ${title}` : `${title} — ${site.name}`;
+const canonical = new URL(alternates[lang], Astro.site).href;
+const ogImage = new URL(image ?? '/og-image.jpg', Astro.site).href;
+const robots = !isProduction || noindex ? 'noindex, nofollow' : 'index, follow';
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="robots" content={robots} />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang="fr" href={new URL(alternates.fr, Astro.site).href} />
+    <link rel="alternate" hreflang="en" href={new URL(alternates.en, Astro.site).href} />
+    <link rel="alternate" hreflang="x-default" href={new URL(alternates.fr, Astro.site).href} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:locale" content={ui[lang]['meta.locale']} />
+    <meta property="og:locale:alternate" content={ui[otherLang]['meta.locale']} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <meta name="theme-color" content="#f6f7f8" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#111317" media="(prefers-color-scheme: dark)" />
+    <meta name="generator" content={Astro.generator} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">{t('skip')}</a>
+    {!isProduction && <div class="env-badge" role="note">{t('env.test')}</div>}
+    <Header lang={lang} alternates={alternates} />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer lang={lang} />
+  </body>
+</html>
+
+<style>
+  .skip-link {
+    position: absolute;
+    left: 1rem;
+    top: -4rem;
+    z-index: 100;
+    padding: 0.6rem 1rem;
+    background: var(--text);
+    color: var(--bg);
+    border-radius: var(--radius);
+    text-decoration: none;
+  }
+  .skip-link:focus {
+    top: 1rem;
+  }
+  main:focus {
+    outline: none;
+  }
+  .env-badge {
+    position: fixed;
+    bottom: 1rem;
+    left: 1rem;
+    z-index: 90;
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+    background: #f5c518;
+    color: #1a1a1a;
+    font-size: var(--step--1);
+    font-weight: 600;
+    pointer-events: none;
+  }
+</style>

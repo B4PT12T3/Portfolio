@@ -1,0 +1,125 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { site } from '../config/site';
+import { routes, useTranslations, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const domain = new URL(Astro.site ?? 'https://morvillebaptiste.fr').host;
+const todo = lang === 'fr' ? '[à compléter]' : '[to be completed]';
+const { status, siret, address, vatNote } = site.legal;
+const formActive = Boolean(site.formspreeId);
+---
+
+<BaseLayout lang={lang} title={t('legal.title')} description={t('legal.description')} alternates={routes.legal}>
+  <div class="container">
+    <header class="page-head">
+      <h1>{t('legal.title')}</h1>
+    </header>
+
+    {
+      lang === 'fr' ? (
+        <div class="prose">
+          <h2>Éditeur du site</h2>
+          <p>
+            Le site {domain} est édité par {site.name}, {status}.<br />
+            SIRET : {siret || todo}<br />
+            Adresse : {address || todo}<br />
+            E-mail : <a href={`mailto:${site.email}`}>{site.email}</a>
+            {vatNote && (
+              <>
+                <br />
+                {vatNote}
+              </>
+            )}
+          </p>
+          <p>Directeur de la publication : {site.name}.</p>
+
+          <h2>Hébergement</h2>
+          <p>
+            Le site est hébergé par LWS (Ligne Web Services), SAS, 10 rue Penthièvre, 75008 Paris, France —{' '}
+            <a href="https://www.lws.fr" rel="noopener">www.lws.fr</a>.
+          </p>
+
+          <h2>Propriété intellectuelle</h2>
+          <p>
+            L’ensemble des contenus de ce site (textes, photographies, logos, affiches, visuels et code) est la propriété de {site.name}, sauf mention
+            contraire, ou de ses clients qui en ont autorisé la présentation. Toute reproduction ou réutilisation sans autorisation écrite préalable est
+            interdite.
+          </p>
+
+          <h2>Données personnelles</h2>
+          {formActive ? (
+            <p>
+              Les informations envoyées via le formulaire de contact (nom, e-mail, type de projet, budget, message) servent uniquement à répondre à votre
+              demande et, le cas échéant, à établir un devis. Elles ne sont ni revendues ni utilisées à des fins publicitaires. Le formulaire est traité par
+              le service Formspree (Formspree Inc., États-Unis), qui transmet les messages par e-mail. Les messages sont conservés au maximum trois ans
+              après le dernier échange.
+            </p>
+          ) : (
+            <p>
+              Si vous m’écrivez par e-mail, les informations que vous envoyez servent uniquement à répondre à votre demande et, le cas échéant, à établir
+              un devis. Elles ne sont ni revendues ni utilisées à des fins publicitaires, et sont conservées au maximum trois ans après le dernier échange.
+            </p>
+          )}
+          <p>
+            Conformément au Règlement général sur la protection des données (RGPD) et à la loi Informatique et Libertés, vous pouvez accéder à vos
+            données, les rectifier ou demander leur suppression en écrivant à <a href={`mailto:${site.email}`}>{site.email}</a>. Vous pouvez également
+            adresser une réclamation à la CNIL (<a href="https://www.cnil.fr" rel="noopener">www.cnil.fr</a>).
+          </p>
+
+          <h2>Cookies</h2>
+          <p>Ce site n’utilise aucun cookie ni outil de mesure d’audience ou de suivi publicitaire.</p>
+        </div>
+      ) : (
+        <div class="prose">
+          <h2>Site publisher</h2>
+          <p>
+            {domain} is published by {site.name}, {status}.<br />
+            SIRET: {siret || todo}<br />
+            Address: {address || todo}<br />
+            Email: <a href={`mailto:${site.email}`}>{site.email}</a>
+          </p>
+          <p>Publication director: {site.name}.</p>
+
+          <h2>Hosting</h2>
+          <p>
+            The site is hosted by LWS (Ligne Web Services), SAS, 10 rue Penthièvre, 75008 Paris, France —{' '}
+            <a href="https://www.lws.fr" rel="noopener">www.lws.fr</a>.
+          </p>
+
+          <h2>Intellectual property</h2>
+          <p>
+            All content on this site (text, photographs, logos, posters, visuals and code) belongs to {site.name}, unless stated otherwise, or to clients
+            who authorised its presentation. Any reproduction or reuse without prior written permission is prohibited.
+          </p>
+
+          <h2>Personal data</h2>
+          {formActive ? (
+            <p>
+              Information sent through the contact form (name, email, project type, budget, message) is only used to reply to your request and, where
+              relevant, to prepare a quote. It is never sold or used for advertising. The form is handled by Formspree (Formspree Inc., United States),
+              which forwards messages by email. Messages are kept for at most three years after the last exchange.
+            </p>
+          ) : (
+            <p>
+              If you email me, the information you send is only used to reply to your request and, where relevant, to prepare a quote. It is never sold
+              or used for advertising, and is kept for at most three years after the last exchange.
+            </p>
+          )}
+          <p>
+            Under the General Data Protection Regulation (GDPR), you can access, correct or request deletion of your data by writing to{' '}
+            <a href={`mailto:${site.email}`}>{site.email}</a>. You can also lodge a complaint with the CNIL, the French data protection authority
+            (<a href="https://www.cnil.fr/en" rel="noopener">www.cnil.fr</a>).
+          </p>
+
+          <h2>Cookies</h2>
+          <p>This site uses no cookies, analytics or advertising trackers.</p>
+        </div>
+      )
+    }
+  </div>
+</BaseLayout>

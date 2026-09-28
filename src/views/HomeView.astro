@@ -1,0 +1,126 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import { routes, path, useTranslations, type Lang } from '../i18n/ui';
+import { getProjects } from '../lib/projects';
+import { services } from '../data/services';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const all = await getProjects(lang);
+const featured = all.filter((p) => p.data.featured);
+const selected = (featured.length >= 3 ? featured : [...featured, ...all.filter((p) => !p.data.featured)]).slice(0, 6);
+const workUrl = path('work', lang);
+---
+
+<BaseLayout lang={lang} title={t('home.title')} description={t('home.description')} alternates={routes.home}>
+  <section class="hero container">
+    <h1 class="lead">
+      {t('home.lead.1')} <a href={`${workUrl}#dev`}>{t('home.lead.dev')}</a>{t('home.lead.2')}
+      <a href={`${workUrl}#design`}>{t('home.lead.design')}</a>{t('home.lead.3')}
+      <a href={`${workUrl}#photo`}>{t('home.lead.photo')}</a>{t('home.lead.4')}
+    </h1>
+    <p class="intro">{t('home.intro')}</p>
+    <div class="actions">
+      <a class="button" href={path('contact', lang)}>{t('home.cta.contact')}</a>
+      <a class="button secondary" href={workUrl}>{t('home.cta.work')}</a>
+    </div>
+  </section>
+
+  {
+    selected.length > 0 && (
+      <section class="section container" aria-labelledby="selected-title">
+        <div class="section-head">
+          <h2 id="selected-title">{t('home.selected')}</h2>
+          <a href={workUrl}>{t('home.allWork')}</a>
+        </div>
+        <div class="grid">
+          {selected.map((project, i) => (
+            <ProjectCard project={project} lang={lang} eager={i < 2} />
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  <section class="section container" aria-labelledby="services-title">
+    <div class="section-head">
+      <h2 id="services-title">{t('home.services')}</h2>
+      <a href={path('services', lang)}>{t('home.servicesLink')}</a>
+    </div>
+    <ul class="services">
+      {
+        services.map((s) => (
+          <li>
+            <h3>{s.name[lang]}</h3>
+            <p class="muted">{s.description[lang]}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    padding-block: clamp(3rem, 10vw, 8rem) clamp(2rem, 5vw, 4rem);
+  }
+  .lead {
+    font-size: var(--step-4);
+    font-weight: 560;
+    line-height: 1.04;
+    letter-spacing: -0.035em;
+    max-width: 17em;
+  }
+  .lead a {
+    font-weight: 720;
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 0.07em;
+    text-underline-offset: 0.12em;
+    transition: color 0.15s;
+  }
+  .lead a:hover {
+    color: var(--accent);
+  }
+  .intro {
+    margin-top: 1.75rem;
+    max-width: 34rem;
+    font-size: var(--step-1);
+    line-height: 1.45;
+    color: var(--muted);
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 2rem;
+  }
+  .grid {
+    display: grid;
+    gap: 2.5rem 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+  }
+  .services {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+    gap: 0;
+    border-top: 1px solid var(--line);
+  }
+  .services li {
+    padding: 1.4rem 1.5rem 1.6rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .services p {
+    margin-top: 0.4rem;
+    font-size: var(--step--1);
+    max-width: 26rem;
+  }
+</style>

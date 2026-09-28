@@ -1,0 +1,28 @@
+{
+  "name": "morvillebaptiste-portfolio",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "build:prod": "cross-env SITE_ENV=production SITE_URL=https://morvillebaptiste.fr astro build",
+    "build:test": "cross-env SITE_ENV=development SITE_URL=https://test.morvillebaptiste.fr astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.4",
+    "@fontsource-variable/bricolage-grotesque": "^5.3.0",
+    "astro": "^7.3.5"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "cross-env": "^10.1.0",
+    "typescript": "^6.0.3"
+  }
+}

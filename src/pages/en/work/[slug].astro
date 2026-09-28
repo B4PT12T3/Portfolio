@@ -1,0 +1,27 @@
+---
+import ProjectView from '../../../views/ProjectView.astro';
+import { getProjects, type Project } from '../../../lib/projects';
+import { path, projectPath } from '../../../i18n/ui';
+
+export async function getStaticPaths() {
+  const projects = await getProjects('en');
+  const translated = new Set((await getProjects('fr')).map((p) => p.slug));
+  return projects.map((project, i) => ({
+    params: { slug: project.slug },
+    props: {
+      project,
+      next: projects.length > 1 ? projects[(i + 1) % projects.length] : undefined,
+      otherLangPath: translated.has(project.slug) ? projectPath(project.slug, 'fr') : path('work', 'fr'),
+    },
+  }));
+}
+
+interface Props {
+  project: Project;
+  next?: Project;
+  otherLangPath: string;
+}
+const { project, next, otherLangPath } = Astro.props;
+---
+
+<ProjectView lang="en" project={project} next={next} otherLangPath={otherLangPath} />
