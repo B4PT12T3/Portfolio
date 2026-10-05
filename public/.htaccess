@@ -14,8 +14,8 @@ ErrorDocument 404 /404.html
   # ── Force HTTPS ──────────────────────────────────────────────
   # Enable ONLY after the free SSL certificate is active for the domain
   # (and for test.morvillebaptiste.fr) in your LWS panel, then remove the "#".
-  # RewriteCond %{HTTPS} !=on
-  # RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+  RewriteCond %{HTTPS} !=on
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
   # ── Redirect www to the bare domain ──────────────────────────
   RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
