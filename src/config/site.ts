@@ -18,7 +18,7 @@ export const site = {
   // Formspree form ID: create a form at https://formspree.io, copy the ID
   // from its endpoint (https://formspree.io/f/XXXXXXXX → "XXXXXXXX").
   // While empty, the contact page shows your email instead of the form.
-  formspreeId: '', // TODO
+  formspreeId: 'maeqnlak', 
 
   // Social links — leave a value empty ('') to hide it.
   socials: {
@@ -33,7 +33,7 @@ export const site = {
    * Fill in once your freelance status (e.g. micro-entreprise) is registered.
    */
   legal: {
-    status: 'Entrepreneur individuel (micro-entreprise)', // TODO check
+    status: "Un gars qui s'amuse", // TODO check
     siret: '', // TODO your SIRET number
     address: '', // TODO your professional address
     vatNote: 'TVA non applicable, art. 293 B du CGI', // standard mention for micro-entrepreneurs under the VAT threshold

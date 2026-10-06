@@ -31,20 +31,20 @@ export const services: Service[] = [
     },
     price: null,
   },
-  {
-    id: 'app',
-    category: 'dev',
-    name: { fr: 'Application web ou mobile', en: 'Web or mobile app' },
-    description: {
-      fr: 'Un outil sur mesure : espace client, réservation, tableau de bord, application interne…',
-      en: 'A custom tool: client portal, booking, dashboard, internal app…',
-    },
-    includes: {
-      fr: ['Cadrage du besoin et maquettes', 'Développement et tests', 'Mise en production', 'Maintenance possible'],
-      en: ['Scoping and mockups', 'Development and testing', 'Deployment', 'Optional maintenance'],
-    },
-    price: null,
-  },
+  // {
+  //   id: 'app',
+  //   category: 'dev',
+  //   name: { fr: 'Application web ou mobile', en: 'Web or mobile app' },
+  //   description: {
+  //     fr: 'Un outil sur mesure : espace client, réservation, tableau de bord, application interne…',
+  //     en: 'A custom tool: client portal, booking, dashboard, internal app…',
+  //   },
+  //   includes: {
+  //     fr: ['Cadrage du besoin et maquettes', 'Développement et tests', 'Mise en production', 'Maintenance possible'],
+  //     en: ['Scoping and mockups', 'Development and testing', 'Deployment', 'Optional maintenance'],
+  //   },
+  //   price: null,
+  // },
   {
     id: 'logo',
     category: 'design',

@@ -46,15 +46,15 @@ export const ui = {
     'lang.short': 'EN',
 
     'cat.all': 'Tout',
-    'cat.dev': 'Sites & applications',
+    'cat.dev': 'Sites',
     'cat.design': 'Graphisme',
     'cat.photo': 'Photographie',
 
     'home.title': 'Développeur, graphiste et photographe freelance',
     'home.description':
-      'Baptiste Morville, freelance : création de sites web et d’applications, logos et affiches, photographie.',
+      'Baptiste Morville, freelance : création de sites web , logos et affiches, photographie.',
     'home.lead.1': 'Je crée des',
-    'home.lead.dev': 'sites et des applications',
+    'home.lead.dev': 'sites web',
     'home.lead.2': ', je dessine des',
     'home.lead.design': 'logos et des affiches',
     'home.lead.3': ', et je fais de la',
@@ -70,7 +70,7 @@ export const ui = {
     'home.servicesLink': 'Services et tarifs',
 
     'work.title': 'Réalisations',
-    'work.description': 'Sites, applications, identités visuelles, affiches et photographies réalisés par Baptiste Morville.',
+    'work.description': 'Sites, identités visuelles, affiches et photographies réalisés par Baptiste Morville.',
     'work.filter': 'Filtrer par catégorie',
     'work.empty': 'Aucun projet dans cette catégorie pour le moment.',
     'work.count.one': 'projet',
@@ -92,7 +92,7 @@ export const ui = {
     'project.ctaLink': 'Me contacter',
 
     'services.title': 'Services et tarifs',
-    'services.description': 'Création de sites web, applications, logos, affiches et photographie : services et tarifs indicatifs.',
+    'services.description': 'Création de sites web, logos, affiches et photographie : services et tarifs indicatifs.',
     'services.intro':
       'Chaque projet est différent : les tarifs ci-dessous sont indicatifs et un devis détaillé et gratuit vous est envoyé après un premier échange.',
     'services.includes': 'Inclus',
@@ -109,7 +109,7 @@ export const ui = {
     'about.portraitAlt': 'Portrait de Baptiste Morville',
 
     'contact.title': 'Contact',
-    'contact.description': 'Contactez Baptiste Morville pour un site, une application, un logo, une affiche ou une séance photo.',
+    'contact.description': 'Contactez Baptiste Morville pour un site, un logo, une affiche ou une séance photo.',
     'contact.intro':
       'Décrivez votre projet en quelques lignes : je vous réponds sous 48 h ouvrées avec des questions ou une première estimation.',
     'contact.direct': 'Ou écrivez-moi directement',
@@ -159,15 +159,15 @@ export const ui = {
     'lang.short': 'FR',
 
     'cat.all': 'All',
-    'cat.dev': 'Websites & apps',
+    'cat.dev': 'Websites',
     'cat.design': 'Graphic design',
     'cat.photo': 'Photography',
 
     'home.title': 'Freelance developer, graphic designer and photographer',
     'home.description':
-      'Baptiste Morville, freelancer: websites and apps, logos and posters, photography.',
+      'Baptiste Morville, freelancer: websites, logos and posters, photography.',
     'home.lead.1': 'I build',
-    'home.lead.dev': 'websites and apps',
+    'home.lead.dev': 'websites',
     'home.lead.2': ', design',
     'home.lead.design': 'logos and posters',
     'home.lead.3': ', and take',
@@ -183,7 +183,7 @@ export const ui = {
     'home.servicesLink': 'Services and pricing',
 
     'work.title': 'Work',
-    'work.description': 'Websites, apps, visual identities, posters and photography by Baptiste Morville.',
+    'work.description': 'Websites, visual identities, posters and photography by Baptiste Morville.',
     'work.filter': 'Filter by category',
     'work.empty': 'No projects in this category yet.',
     'work.count.one': 'project',
@@ -205,7 +205,7 @@ export const ui = {
     'project.ctaLink': 'Get in touch',
 
     'services.title': 'Services and pricing',
-    'services.description': 'Websites, apps, logos, posters and photography: services and indicative pricing.',
+    'services.description': 'Websites, logos, posters and photography: services and indicative pricing.',
     'services.intro':
       'Every project is different: prices below are indicative, and you get a detailed, free quote after a first conversation.',
     'services.includes': 'Includes',
@@ -222,7 +222,7 @@ export const ui = {
     'about.portraitAlt': 'Portrait of Baptiste Morville',
 
     'contact.title': 'Contact',
-    'contact.description': 'Contact Baptiste Morville about a website, an app, a logo, a poster or a photo shoot.',
+    'contact.description': 'Contact Baptiste Morville about a website, a logo, a poster or a photo shoot.',
     'contact.intro':
       'Describe your project in a few lines: I reply within two working days with questions or a first estimate.',
     'contact.direct': 'Or email me directly',
