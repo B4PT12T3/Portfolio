@@ -1,12 +1,15 @@
-# morvillebaptiste.fr — portfolio
+# Portfolio website
 
-Freelance portfolio of Baptiste Morville: websites & apps, graphic design, photography.
-Built with [Astro](https://astro.build) (static site, French + English), deployed to LWS by GitHub Actions.
+A bilingual (French + English) portfolio site: work by category, services & pricing, about, contact form and legal notice.
+Built with [Astro](https://astro.build) (static site) and deployed to any FTP web host by GitHub Actions.
 
 | Branch | URL | Indexed by Google |
 |---|---|---|
-| `main` | https://morvillebaptiste.fr | yes |
-| `dev` | https://test.morvillebaptiste.fr | no (noindex + "Test version" badge) |
+| `main` | `https://example.com` | yes |
+| `dev` | `https://test.example.com` | no (noindex + "Test version" badge) |
+
+> Throughout this guide, replace `example.com` with your domain, and `<you>/<repo>` with your GitHub
+> username and repository name. Don't type the `<` `>` characters.
 
 ---
 
@@ -23,7 +26,21 @@ npm run preview      # serves dist/ locally
 npm run check        # type-checks the project
 ```
 
-## 2. Where to edit things
+## 2. Make it yours
+
+### Set your domain (4 places)
+
+| File | What to change |
+|---|---|
+| `astro.config.mjs` | the default `SITE_URL` |
+| `package.json` | the URLs in `build:prod` and `build:test` |
+| `.github/workflows/deploy.yml` | the two URLs on the `SITE_URL` line |
+| `src/views/ContactView.astro` | the domain in the email subject |
+
+Then search the whole project for the old domain and the old name (in VS Code: Ctrl+Shift+F) to catch the
+remaining mentions in texts and comments (`src/i18n/ui.ts`, `src/views/LegalView.astro`, `public/.htaccess`).
+
+### Edit the content
 
 | What | File |
 |---|---|
@@ -34,6 +51,8 @@ npm run check        # type-checks the project
 | All interface text (FR + EN) | `src/i18n/ui.ts` |
 | Colours, fonts, spacing | tokens at the top of `src/styles/global.css` |
 | Social sharing image | `public/og-image.jpg` (1200×630) |
+| Favicon (initials) | `public/favicon.svg` |
+| Hosting company in the legal notice | `src/views/LegalView.astro` |
 | Page layouts | `src/views/*.astro` (each view is shared by the FR and EN page) |
 
 ### Add a project
@@ -74,70 +93,105 @@ Text of the project page (Markdown).
 ```
 
 Images are resized and converted to WebP automatically at build time, so you can drop in full-size exports
-(keep them under ~5 MB each). **The six current projects are examples** — delete their folders once you've
+(keep them under ~5 MB each). **The projects included are examples** — delete their folders once you've
 added your own.
 
 ## 3. Deployment setup (one time)
 
-### a. On LWS
+### a. On your web host
 
-1. **Create the subdomain** `test` (LWS panel → your domain → *Sous-domaines*). LWS creates a folder with the
-   subdomain's name on your FTP space.
-2. **Enable the free SSL certificate** for `morvillebaptiste.fr` **and** `test.morvillebaptiste.fr`.
-3. **Find the two folders**: connect with FileZilla (host `ftp.morvillebaptiste.fr`, your FTP login,
-   encryption "explicit FTP over TLS") and note:
-   - the folder where the main site lives (often `/htdocs/` or `/www/`),
-   - the folder created for the subdomain.
+1. **Create a subdomain** named `test` in your hosting panel. Most hosts create a folder for it on your FTP space.
+2. **Enable the SSL certificate** (HTTPS) for both `example.com` and `test.example.com`.
+3. **Find the two folders.** Connect with an FTP client such as FileZilla and note:
+   - the folder the main site is served from (often `/`, `/htdocs/`, `/www/` or `/public_html/`),
+   - the folder of the `test` subdomain.
 
-   If unsure, upload a file named `hello.txt` to a folder and open `https://morvillebaptiste.fr/hello.txt`
-   (or `https://test.morvillebaptiste.fr/hello.txt`) to confirm, then delete it.
+   To be sure, upload a file named `hello.txt` to a folder and open `https://example.com/hello.txt`
+   (or `https://test.example.com/hello.txt`). If it displays, that's the right folder. Delete the file afterwards.
 
 ### b. On GitHub
 
-Create the repository, then in **Settings → Secrets and variables → Actions**:
+1. Create a **new, empty repository** at [github.com/new](https://github.com/new): leave "Add a README",
+   ".gitignore" and "license" unchecked.
+2. In the repository, open **Settings → Secrets and variables → Actions** and add:
 
 | Type | Name | Value |
 |---|---|---|
-| Secret | `FTP_SERVER` | `ftp.morvillebaptiste.fr` |
-| Secret | `FTP_USERNAME` | your LWS FTP login |
-| Secret | `FTP_PASSWORD` | your LWS FTP password |
-| Variable | `FTP_PROD_DIR` | main site folder, **ending with `/`** (e.g. `/htdocs/`) |
-| Variable | `FTP_TEST_DIR` | subdomain folder, **ending with `/`** |
+| Secret | `FTP_SERVER` | your FTP host, e.g. `ftp.example.com` |
+| Secret | `FTP_USERNAME` | your FTP login |
+| Secret | `FTP_PASSWORD` | your FTP password |
+| Variable | `FTP_PROD_DIR` | main site folder, e.g. `/htdocs/` |
+| Variable | `FTP_TEST_DIR` | test subdomain folder, e.g. `/test.example.com/` |
+
+> **The two folders are FTP paths, not web addresses.** They start and end with `/` and never contain
+> `https://`. Writing a web address here creates a stray folder named `https:` on your server.
 
 The workflow stops with a clear message if any of these is missing.
 
+The upload uses encrypted FTP (FTPS, port 21). If your host only supports plain FTP, change
+`protocol: ftps` to `protocol: ftp` in `.github/workflows/deploy.yml`.
+
 ### c. Push both branches
 
+In a terminal opened in the project folder:
+
 ```bash
+git init -b main                 # only if the folder is not a git repository yet
 git add .
 git commit -m "Initial portfolio"
-git remote add origin git@github.com:<you>/<repo>.git
-git push -u origin main          # → deploys morvillebaptiste.fr
+git remote add origin https://github.com/<you>/<repo>.git
+git push -u origin main          # → deploys example.com
 git switch -c dev
-git push -u origin dev           # → deploys test.morvillebaptiste.fr
+git push -u origin dev           # → deploys test.example.com
 ```
 
-Follow the run in the repository's **Actions** tab. First deploy uploads everything; later deploys only send
-changed files (the tool keeps a small `.ftp-deploy-sync-state.json` file on the server — don't delete it).
+Follow each run in the repository's **Actions** tab: a green tick means it's live (about a minute), a red
+cross shows the reason when you click it. The first deploy uploads everything; later ones only send changed
+files (the tool keeps a small `.ftp-deploy-sync-state.json` file on the server — don't delete it).
 
 ### d. Once HTTPS works
 
-Open `public/.htaccess` and uncomment the two "Force HTTPS" lines, then deploy.
+Open `public/.htaccess`, remove the `#` in front of the two "Force HTTPS" lines, then commit and push.
+(`.htaccess` applies to Apache servers, which most shared hosts use.)
 
 ## 4. Day-to-day workflow
 
-1. Work on `dev`, push → check https://test.morvillebaptiste.fr
-2. When happy: merge `dev` into `main` (pull request or `git switch main && git merge dev && git push`)
-   → the real site updates in about a minute.
+1. Work on `dev`, then publish to the test site:
 
-## 5. Before going live — checklist
+   ```bash
+   git add .
+   git commit -m "Describe your change"
+   git push
+   ```
 
-- [ ] `src/config/site.ts`: email, socials, Formspree ID
+2. Check `https://test.example.com`. When happy, publish to the real site:
+
+   ```bash
+   git switch main
+   git merge dev
+   git push
+   git switch dev
+   ```
+
+## 5. Troubleshooting
+
+| Message | Fix |
+|---|---|
+| `error: remote origin already exists` | The address is already saved. Change it with `git remote set-url origin https://github.com/<you>/<repo>.git`, check with `git remote -v`. |
+| `unable to access 'https://github.com/<you>/<repo>.git/'` | The placeholder was typed literally. Same fix as above, with your real username and repository. |
+| `The current branch … has no upstream branch` | First push of that branch: `git push --set-upstream origin <branch>`. |
+| `fatal: not a git repository` | You're not in the project folder, or run `git init -b main`. |
+| Deploy fails with "Secret/Variable … is not set" | Add it (step 3b), then **Re-run all jobs** in the Actions tab. |
+| Deploy is green but the site doesn't change | `FTP_PROD_DIR` / `FTP_TEST_DIR` point to the wrong folder. Redo the `hello.txt` test (step 3a). |
+| A folder named `https:` appeared on the server | A folder variable contained a web address. Fix the variable, delete that folder, re-run the deploy. |
+| `LF will be replaced by CRLF` (Windows) | Harmless, ignore it. |
+
+## 6. Before going live — checklist
+
+- [ ] Domain replaced in the 4 files (section 2)
+- [ ] `src/config/site.ts`: name, email, socials, Formspree ID
 - [ ] Contact form: create a free form on [formspree.io](https://formspree.io), paste its ID, send yourself a test message (the first submission asks you to confirm your email)
-- [ ] Legal notice: SIRET and address in `site.legal` (required once your freelance activity is registered)
-- [ ] Replace the example projects, portrait and bio
-- [ ] Set prices in `src/data/services.ts` (or keep "On quote")
+- [ ] Legal notice: your business details, and your hosting company's name and address
+- [ ] Example projects, portrait and bio replaced
+- [ ] Prices set in `src/data/services.ts` (or kept as "On quote")
 - [ ] HTTPS enabled and forced (step 3d)
-
-> Freelancing alongside a job: check your employment contract for exclusivity or non-compete clauses, and
-> register your activity (e.g. micro-entreprise on formalites.entreprises.gouv.fr) before invoicing.
