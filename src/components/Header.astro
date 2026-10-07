@@ -1,6 +1,6 @@
 ---
-import { site } from '../config/site';
-import { path, useTranslations, type Lang, type RouteKey } from '../i18n/ui';
+import { site } from "../config/site";
+import { path, useTranslations, type Lang, type RouteKey } from "../i18n/ui";
 
 interface Props {
   lang: Lang;
@@ -9,41 +9,68 @@ interface Props {
 
 const { lang, alternates } = Astro.props;
 const t = useTranslations(lang);
-const otherLang: Lang = lang === 'fr' ? 'en' : 'fr';
+const otherLang: Lang = lang === "fr" ? "en" : "fr";
 const current = Astro.url.pathname;
 
 const items: { key: RouteKey; label: string }[] = [
-  { key: 'work', label: t('nav.work') },
-  { key: 'services', label: t('nav.services') },
-  { key: 'about', label: t('nav.about') },
-  { key: 'contact', label: t('nav.contact') },
+  { key: "work", label: t("nav.work") },
+  { key: "services", label: t("nav.services") },
+  { key: "about", label: t("nav.about") },
+  { key: "contact", label: t("nav.contact") },
 ];
 const isActive = (key: RouteKey) => current.startsWith(path(key, lang));
 ---
 
 <header class="site-header">
   <div class="container bar">
-    <a class="brand" href={path('home', lang)}>{site.shortName}</a>
+    <a class="brand" href={path("home", lang)}>{site.shortName}</a>
 
-    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-open={t('nav.menu')} data-close={t('nav.close')}>
-      {t('nav.menu')}
+    <button
+      class="menu-toggle"
+      type="button"
+      aria-expanded="false"
+      aria-controls="site-nav"
+      data-open={t("nav.menu")}
+      data-close={t("nav.close")}
+    >
+      {t("nav.menu")}
     </button>
 
-    <nav id="site-nav" class="nav" aria-label={t('nav.label')}>
+    <nav id="site-nav" class="nav" aria-label={t("nav.label")}>
       <ul>
         {
           items.map((item) => (
             <li>
-              <a href={path(item.key, lang)} aria-current={isActive(item.key) ? 'page' : undefined}>
+              <a
+                href={path(item.key, lang)}
+                aria-current={isActive(item.key) ? "page" : undefined}
+              >
                 {item.label}
               </a>
             </li>
           ))
         }
         <li class="lang">
-          <a href={alternates[otherLang]} hreflang={otherLang} lang={otherLang} title={t('lang.switch')}>
-            <span aria-hidden="true">{t('lang.short')}</span>
-            <span class="visually-hidden">{t('lang.switch')}</span>
+          <a
+            class="lang-toggle"
+            href={alternates[otherLang]}
+            hreflang={otherLang}
+            title={t("lang.switch")}
+          >
+            <span class="visually-hidden" lang={otherLang}
+              >{t("lang.switch")}</span
+            >
+            <span class="thumb" data-pos={lang} aria-hidden="true"></span>
+            <span
+              class="opt"
+              data-active={lang === "fr" ? "" : undefined}
+              aria-hidden="true">FR</span
+            >
+            <span
+              class="opt"
+              data-active={lang === "en" ? "" : undefined}
+              aria-hidden="true">EN</span
+            >
           </a>
         </li>
       </ul>
@@ -52,23 +79,27 @@ const isActive = (key: RouteKey) => current.startsWith(path(key, lang));
 </header>
 
 <script>
-  const header = document.querySelector<HTMLElement>('.site-header');
-  const button = header?.querySelector<HTMLButtonElement>('.menu-toggle');
+  const header = document.querySelector<HTMLElement>(".site-header");
+  const button = header?.querySelector<HTMLButtonElement>(".menu-toggle");
   if (header && button) {
-    header.dataset.js = 'true';
+    header.dataset.js = "true";
     const setOpen = (open: boolean) => {
-      button.setAttribute('aria-expanded', String(open));
+      button.setAttribute("aria-expanded", String(open));
       button.textContent = open ? button.dataset.close! : button.dataset.open!;
-      header.classList.toggle('is-open', open);
+      header.classList.toggle("is-open", open);
     };
-    button.addEventListener('click', () => setOpen(button.getAttribute('aria-expanded') !== 'true'));
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && header.classList.contains('is-open')) {
+    button.addEventListener("click", () =>
+      setOpen(button.getAttribute("aria-expanded") !== "true"),
+    );
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && header.classList.contains("is-open")) {
         setOpen(false);
         button.focus();
       }
     });
-    matchMedia('(min-width: 48rem)').addEventListener('change', () => setOpen(false));
+    matchMedia("(min-width: 48rem)").addEventListener("change", () =>
+      setOpen(false),
+    );
   }
 </script>
 
@@ -109,17 +140,55 @@ const isActive = (key: RouteKey) => current.startsWith(path(key, lang));
     padding-block: 0.4rem;
     display: inline-block;
   }
-  .nav a[aria-current='page'] {
+  .nav a[aria-current="page"] {
     text-decoration: underline;
     text-decoration-color: var(--accent);
     text-decoration-thickness: 2px;
     text-underline-offset: 0.45em;
   }
-  .lang a {
-    font-weight: 600;
+  /* Language toggle: FR | EN, the thumb sits under the current language */
+  .nav a.lang-toggle {
+    position: relative;
+    display: inline-grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 3px;
     border: 1px solid var(--line);
     border-radius: 999px;
-    padding: 0.15rem 0.6rem;
+    background: var(--surface);
+    font-size: var(--step--1);
+    font-weight: 600;
+    line-height: 1;
+    vertical-align: middle;
+  }
+  .lang-toggle .thumb {
+    position: absolute;
+    top: 3px;
+    bottom: 3px;
+    left: 3px;
+    width: calc(50% - 3px);
+    border-radius: 999px;
+    background: var(--text);
+    transition: transform 0.2s ease;
+    view-transition-name: lang-thumb;
+  }
+  .lang-toggle .thumb[data-pos="en"] {
+    transform: translateX(100%);
+  }
+  .lang-toggle .opt {
+    position: relative;
+    padding: 0.4rem 0.7rem;
+    text-align: center;
+    color: var(--muted);
+    transition: color 0.2s ease;
+  }
+  .lang-toggle .opt[data-active] {
+    color: var(--bg);
+  }
+  .lang-toggle:hover {
+    border-color: var(--text);
+  }
+  .lang-toggle:hover .opt:not([data-active]) {
+    color: var(--text);
   }
   .menu-toggle {
     display: none;
@@ -159,6 +228,21 @@ const isActive = (key: RouteKey) => current.startsWith(path(key, lang));
     .site-header:not([data-js]) .nav {
       width: 100%;
       padding-bottom: 0.5rem;
+    }
+  }
+</style>
+
+<style is:global>
+  @media (prefers-reduced-motion: no-preference) {
+    @view-transition {
+      navigation: auto;
+    }
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation: none;
+    }
+    ::view-transition-group(lang-thumb) {
+      animation-duration: 0.25s;
     }
   }
 </style>
